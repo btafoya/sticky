@@ -35,7 +35,8 @@ export class SyncClient {
   ) {}
 
   private authHeader() {
-    return `Basic ${btoa(`sticky:${this.apiKey}`)}`;
+    const creds = encoder.encode(`sticky:${this.apiKey}`);
+    return `Basic ${GLib.base64_encode(creds)}`;
   }
 
   private request(method: string, url: string, body?: string): Soup.Message {

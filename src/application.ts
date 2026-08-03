@@ -334,9 +334,9 @@ export class Application extends Adw.Application {
     });
     sync_preferences_action.connect("activate", () => {
       const active = this.get_active_window();
-      const dialog = new SyncPreferencesDialog(
-        active ? { transient_for: active } : {},
-      );
+      const dialog = new SyncPreferencesDialog();
+      // @ts-ignore present() is available on Adw.Dialog at runtime
+      if (active) (dialog as any).transient_for = active;
       dialog.present();
     });
     this.add_action(sync_preferences_action);

@@ -15,8 +15,8 @@ export class SyncPreferencesDialog extends Adw.PreferencesDialog {
     );
   }
 
-  constructor(params: Partial<Gtk.Window.ConstructorProps> = {}) {
-    super(params);
+  constructor() {
+    super();
 
     const page = new Adw.PreferencesPage({
       title: _("Sync Preferences"),
