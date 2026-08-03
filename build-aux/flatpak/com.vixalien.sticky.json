@@ -9,6 +9,7 @@
   "command": "com.vixalien.sticky",
   "finish-args": [
     "--share=ipc",
+    "--share=network",
     "--device=dri",
     "--socket=wayland",
     "--socket=fallback-x11",

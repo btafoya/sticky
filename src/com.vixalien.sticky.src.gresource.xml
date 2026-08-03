@@ -8,6 +8,8 @@
     <file>notes.js</file>
     <file>styleselector.js</file>
     <file>store.js</file>
+    <file>sync.js</file>
+    <file>sync-queue.js</file>
     <file>themeselector.js</file>
     <file>view.js</file>
     <file>window.js</file>
