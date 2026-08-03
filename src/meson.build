@@ -9,6 +9,7 @@ sources = [
   'styleselector.ts',
   'store.ts',
   'sync.ts',
+  'sync-preferences.ts',
   'sync-queue.ts',
   'themeselector.ts',
   'view.ts',

@@ -39,6 +39,7 @@ import {
   save_note,
   save_notes,
 } from "./store.js";
+import { SyncPreferencesDialog } from "./sync-preferences.js";
 import { SyncQueue } from "./sync-queue.js";
 import { Window } from "./window.js";
 
@@ -327,6 +328,18 @@ export class Application extends Adw.Application {
     const show_about_action = new Gio.SimpleAction({ name: "about" });
     show_about_action.connect("activate", () => this.show_about());
     this.add_action(show_about_action);
+
+    const sync_preferences_action = new Gio.SimpleAction({
+      name: "sync-preferences",
+    });
+    sync_preferences_action.connect("activate", () => {
+      const active = this.get_active_window();
+      const dialog = new SyncPreferencesDialog(
+        active ? { transient_for: active } : {},
+      );
+      dialog.present();
+    });
+    this.add_action(sync_preferences_action);
 
     const new_note = new Gio.SimpleAction({ name: "new-note" });
     new_note.connect("activate", () => this.new_note());
