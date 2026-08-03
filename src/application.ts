@@ -39,11 +39,13 @@ import {
   save_note,
   save_notes,
 } from "./store.js";
+import { SyncQueue } from "./sync-queue.js";
 import { Window } from "./window.js";
 
 export class Application extends Adw.Application {
   private window: StickyNotes | null = null;
   private note_windows: Window[] = [];
+  private syncQueue?: SyncQueue;
 
   static {
     GObject.registerClass(this);
@@ -60,6 +62,86 @@ export class Application extends Adw.Application {
     });
   }
 
+  private init_sync() {
+    if (!settings.get_boolean("sync-enabled")) return;
+
+    const url = settings.get_string("sync-url");
+    const key = settings.get_string("sync-api-key");
+    const interval = settings.get_int("sync-interval-seconds");
+
+    if (!url || !key) {
+      console.warn("sync enabled but url or api key missing");
+      return;
+    }
+
+    this.syncQueue = new SyncQueue(url, key, interval, (remoteNotes, deletedUuids) => {
+      this.merge_remote_notes(remoteNotes, deletedUuids);
+    });
+
+    this.syncQueue.syncNow();
+  }
+
+  private watch_note(note: Note) {
+    note.connect("notify::modified", () => {
+      save_note(note);
+      this.syncQueue?.push(note);
+    });
+
+    // changing open doesn't change modified, and doesn't need to sync
+    note.connect("notify::open", () => {
+      save_note(note);
+    });
+  }
+
+  private merge_remote_notes(
+    remoteNotes: import("./sync.js").RemoteNote[],
+    deletedUuids: string[],
+  ) {
+    const localByUuid = new Map(this.notes_array().map((note) => [note.uuid, note]));
+
+    for (const remote of remoteNotes) {
+      const local = localByUuid.get(remote.uuid);
+      const remoteModified = new Date(remote.modified);
+
+      if (local) {
+        if (remoteModified > local.modified_date) {
+          local.content = remote.content;
+          local.title = remote.title;
+          local.style = remote.style;
+          local.tags = remote.tags;
+          local.width = remote.width;
+          local.height = remote.height;
+          local.open = remote.open ?? false;
+          local.modified_date = remoteModified;
+        }
+      } else {
+        const note = new Note({
+          v: remote.v,
+          uuid: remote.uuid,
+          content: remote.content,
+          title: remote.title,
+          style: remote.style,
+          tags: remote.tags,
+          modified: remoteModified,
+          width: remote.width,
+          height: remote.height,
+          open: remote.open ?? false,
+        });
+        this.watch_note(note);
+        this.notes_list.append(note);
+      }
+    }
+
+    // remove notes that were deleted remotely after they were last synced
+    for (const uuid of deletedUuids) {
+      if (localByUuid.has(uuid)) {
+        this.delete_local_note(uuid);
+      }
+    }
+
+    this.sort_notes();
+  }
+
   constructor() {
     super({
       application_id: "com.vixalien.sticky",
@@ -69,20 +151,13 @@ export class Application extends Adw.Application {
     GLib.set_application_name(_("Sticky Notes"));
 
     this.init_actions();
+    this.init_sync();
 
     try {
       const notes = load_notes();
 
       notes.forEach((note) => {
-        note.connect("notify::modified", (_, x) => {
-          save_note(note);
-        });
-
-        // changing open doesn't change modified
-        note.connect("notify::open", () => {
-          save_note(note);
-        });
-
+        this.watch_note(note);
         this.notes_list.append(note);
       });
 
@@ -170,6 +245,8 @@ export class Application extends Adw.Application {
 
   public vfunc_shutdown() {
     this.save();
+    this.syncQueue?.flush();
+    this.syncQueue?.stop();
 
     super.vfunc_shutdown();
   }
@@ -440,7 +517,7 @@ export class Application extends Adw.Application {
     }
   }
 
-  delete_note(uuid: string) {
+  private delete_local_note(uuid: string) {
     const found_id = this.find_note_id(uuid);
     const found_window = this.find_open_window(uuid);
 
@@ -448,6 +525,11 @@ export class Application extends Adw.Application {
     if (found_window) found_window.close();
 
     delete_note(uuid);
+  }
+
+  delete_note(uuid: string) {
+    this.delete_local_note(uuid);
+    this.syncQueue?.delete(uuid);
   }
 
   all_notes() {
@@ -480,15 +562,7 @@ export class Application extends Adw.Application {
   new_note() {
     const note = Note.generate();
 
-    note.connect("notify::modified", () => {
-      save_note(note);
-    });
-
-    // changing open doesn't change modified
-    note.connect("notify::open", () => {
-      save_note(note);
-    });
-
+    this.watch_note(note);
     this.notes_list.append(note);
 
     this.show_note(note.uuid);

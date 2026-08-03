@@ -43,5 +43,25 @@
 			<summary>Show all notes</summary>
 			<description>Whether to show the all notes window or note</description>
 		</key>
+		<key name="sync-enabled" type="b">
+			<default>false</default>
+			<summary>Enable note syncing</summary>
+			<description>Whether to sync notes with a remote server</description>
+		</key>
+		<key name="sync-url" type="s">
+			<default>''</default>
+			<summary>Sync server URL</summary>
+			<description>The HTTPS URL of the PostgREST sync endpoint</description>
+		</key>
+		<key name="sync-api-key" type="s">
+			<default>''</default>
+			<summary>Sync API key</summary>
+			<description>Shared API key used to authenticate with the sync server</description>
+		</key>
+		<key name="sync-interval-seconds" type="i">
+			<default>30</default>
+			<summary>Sync retry interval</summary>
+			<description>Seconds between automatic sync retries when offline</description>
+		</key>
 	</schema>
 </schemalist>

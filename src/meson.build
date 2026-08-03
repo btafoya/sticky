@@ -8,6 +8,8 @@ sources = [
   'notes.ts',
   'styleselector.ts',
   'store.ts',
+  'sync.ts',
+  'sync-queue.ts',
   'themeselector.ts',
   'view.ts',
   'window.ts',

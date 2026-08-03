@@ -6,3 +6,6 @@ node_modules/
 # local flatpak build
 /repo
 /.flatpak-builder/
+
+# sync backend secrets
+backend/.env

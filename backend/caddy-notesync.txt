@@ -1,0 +1,7 @@
+# Paste this block into your existing Caddyfile and reload Caddy.
+# PostgREST must be reachable at 127.0.0.1:3000 (bound by docker-compose.yml).
+
+notesync.tafoyaventures.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3000
+}
