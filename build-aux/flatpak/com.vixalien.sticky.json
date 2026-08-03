@@ -1,17 +1,11 @@
 {
   "id": "com.vixalien.sticky",
   "runtime": "org.gnome.Platform",
-  "runtime-version": "master",
+  "runtime-version": "50",
   "sdk": "org.gnome.Sdk",
   "sdk-extensions": [
-    "org.freedesktop.Sdk.Extension.node20"
+    "org.freedesktop.Sdk.Extension.node22"
   ],
-  "tags": [
-    "nightly"
-  ],
-  "build-options": {
-    "append-path": "/usr/lib/sdk/node20/bin"
-  },
   "command": "com.vixalien.sticky",
   "finish-args": [
     "--share=ipc",
@@ -32,12 +26,15 @@
     "*.a",
     "/yarn-mirror"
   ],
+  "build-options": {
+    "append-path": "/usr/lib/sdk/node22/bin"
+  },
   "modules": [
     {
       "name": "yarn-deps",
       "buildsystem": "simple",
       "build-commands": [
-        "/usr/lib/sdk/node20/enable.sh",
+        "/usr/lib/sdk/node22/enable.sh",
         "mkdir -p /app",
         "cp -r $FLATPAK_BUILDER_BUILDDIR/flatpak-node/yarn-mirror/ /app",
         "echo $'yarn-offline-mirror \"/app/yarn-mirror\"' > /app/.yarnrc"
