@@ -335,9 +335,10 @@ export class Application extends Adw.Application {
     sync_preferences_action.connect("activate", () => {
       const active = this.get_active_window();
       const dialog = new SyncPreferencesDialog();
-      // @ts-ignore present() is available on Adw.Dialog at runtime
-      if (active) (dialog as any).transient_for = active;
-      dialog.present();
+      // Adw.Dialog.present() in this runtime requires the parent widget argument.
+      // @ts-ignore present() signature differs between Adwaita versions.
+      if (active) dialog.present(active);
+      else dialog.present();
     });
     this.add_action(sync_preferences_action);
 
